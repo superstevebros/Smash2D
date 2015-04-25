@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		F42A087F1AEB3D410012616F /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F42A087E1AEB3D410012616F /* main.cpp */; };
+		F45037671AEB40B4009ED3FA /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F45037661AEB40B4009ED3FA /* SDL2.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -25,6 +26,7 @@
 /* Begin PBXFileReference section */
 		F42A087B1AEB3D410012616F /* Smash2D */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Smash2D; sourceTree = BUILT_PRODUCTS_DIR; };
 		F42A087E1AEB3D410012616F /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		F45037661AEB40B4009ED3FA /* SDL2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL2.framework; path = ../../../Library/Frameworks/SDL2.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -32,6 +34,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F45037671AEB40B4009ED3FA /* SDL2.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -41,6 +44,7 @@
 		F42A08721AEB3D410012616F = {
 			isa = PBXGroup;
 			children = (
+				F45037661AEB40B4009ED3FA /* SDL2.framework */,
 				F42A087D1AEB3D410012616F /* Smash2D */,
 				F42A087C1AEB3D410012616F /* Products */,
 			);
@@ -205,6 +209,10 @@
 		F42A08831AEB3D410012616F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(LOCAL_LIBRARY_DIR)/Frameworks",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -212,6 +220,10 @@
 		F42A08841AEB3D410012616F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(LOCAL_LIBRARY_DIR)/Frameworks",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -235,6 +247,7 @@
 				F42A08841AEB3D410012616F /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
