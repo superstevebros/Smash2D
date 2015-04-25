@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		F42A087F1AEB3D410012616F /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F42A087E1AEB3D410012616F /* main.cpp */; };
 		F45037671AEB40B4009ED3FA /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F45037661AEB40B4009ED3FA /* SDL2.framework */; };
+		F481582F1AEC49D60016209A /* SDL2_image.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F481582E1AEC49D60016209A /* SDL2_image.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -27,6 +28,7 @@
 		F42A087B1AEB3D410012616F /* Smash2D */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Smash2D; sourceTree = BUILT_PRODUCTS_DIR; };
 		F42A087E1AEB3D410012616F /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		F45037661AEB40B4009ED3FA /* SDL2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL2.framework; path = ../../../Library/Frameworks/SDL2.framework; sourceTree = "<group>"; };
+		F481582E1AEC49D60016209A /* SDL2_image.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL2_image.framework; path = ../../../Library/Frameworks/SDL2_image.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -34,6 +36,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F481582F1AEC49D60016209A /* SDL2_image.framework in Frameworks */,
 				F45037671AEB40B4009ED3FA /* SDL2.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -44,6 +47,7 @@
 		F42A08721AEB3D410012616F = {
 			isa = PBXGroup;
 			children = (
+				F481582E1AEC49D60016209A /* SDL2_image.framework */,
 				F45037661AEB40B4009ED3FA /* SDL2.framework */,
 				F42A087D1AEB3D410012616F /* Smash2D */,
 				F42A087C1AEB3D410012616F /* Products */,

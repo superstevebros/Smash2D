@@ -6,14 +6,47 @@
 //  Copyright (c) 2015 Super Steve Bros. All rights reserved.
 //
 
-//Using SDL, standard IO, and strings
+//Using SDL, SDL_image, standard math, and strings
 #include <SDL2/SDL.h>
+#include <SDL2_image/SDL_image.h>
 #include <stdio.h>
 #include <string>
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
+
+//Texture wrapper class
+class LTexture
+{
+public:
+    //Initializes variables
+    LTexture();
+    
+    //Deallocates memory
+    ~LTexture();
+    
+    //Loads image at specified path
+    bool loadFromFile( std::string path );
+    
+    //Deallocates texture
+    void free();
+    
+    //Renders texture at given point
+    void render( int x, int y, SDL_Rect* clip = NULL );
+    
+    //Gets image dimensions
+    int getWidth();
+    int getHeight();
+    
+private:
+    //The actual hardware texture
+    SDL_Texture* mTexture;
+    
+    //Image dimensions
+    int mWidth;
+    int mHeight;
+};
 
 //Starts up SDL and creates window
 bool init();
@@ -24,17 +57,109 @@ bool loadMedia();
 //Frees media and shuts down SDL
 void close();
 
-//Loads individual image
-SDL_Surface* loadSurface( std::string path );
-
 //The window we'll be rendering to
 SDL_Window* gWindow = NULL;
 
-//The surface contained by the window
-SDL_Surface* gScreenSurface = NULL;
+//The window renderer
+SDL_Renderer* gRenderer = NULL;
 
-//Current displayed image
-SDL_Surface* gStretchedSurface = NULL;
+//Scene sprites
+SDL_Rect gSpriteClips[ 4 ];
+LTexture gSpriteSheetTexture;
+
+
+LTexture::LTexture()
+{
+    //Initialize
+    mTexture = NULL;
+    mWidth = 0;
+    mHeight = 0;
+}
+
+LTexture::~LTexture()
+{
+    //Deallocate
+    free();
+}
+
+bool LTexture::loadFromFile( std::string path )
+{
+    //Get rid of preexisting texture
+    free();
+    
+    //The final texture
+    SDL_Texture* newTexture = NULL;
+    
+    //Load image at specified path
+    SDL_Surface* loadedSurface = IMG_Load( path.c_str() );
+    if( loadedSurface == NULL )
+    {
+        printf( "Unable to load image %s! SDL_image Error: %s\n", path.c_str(), IMG_GetError() );
+    }
+    else
+    {
+        //Color key image
+        SDL_SetColorKey( loadedSurface, SDL_TRUE, SDL_MapRGB( loadedSurface->format, 0, 0xFF, 0xFF ) );
+        
+        //Create texture from surface pixels
+        newTexture = SDL_CreateTextureFromSurface( gRenderer, loadedSurface );
+        if( newTexture == NULL )
+        {
+            printf( "Unable to create texture from %s! SDL Error: %s\n", path.c_str(), SDL_GetError() );
+        }
+        else
+        {
+            //Get image dimensions
+            mWidth = loadedSurface->w;
+            mHeight = loadedSurface->h;
+        }
+        
+        //Get rid of old loaded surface
+        SDL_FreeSurface( loadedSurface );
+    }
+    
+    //Return success
+    mTexture = newTexture;
+    return mTexture != NULL;
+}
+
+void LTexture::free()
+{
+    //Free texture if it exists
+    if( mTexture != NULL )
+    {
+        SDL_DestroyTexture( mTexture );
+        mTexture = NULL;
+        mWidth = 0;
+        mHeight = 0;
+    }
+}
+
+void LTexture::render( int x, int y, SDL_Rect* clip )
+{
+    //Set rendering space and render to screen
+    SDL_Rect renderQuad = { x, y, mWidth, mHeight };
+    
+    //Set clip rendering dimensions
+    if( clip != NULL )
+    {
+        renderQuad.w = clip->w;
+        renderQuad.h = clip->h;
+    }
+    
+    //Render to screen
+    SDL_RenderCopy( gRenderer, mTexture, clip, &renderQuad );
+}
+
+int LTexture::getWidth()
+{
+    return mWidth;
+}
+
+int LTexture::getHeight()
+{
+    return mHeight;
+}
 
 bool init()
 {
@@ -49,6 +174,12 @@ bool init()
     }
     else
     {
+        //Set texture filtering to linear
+        if( !SDL_SetHint( SDL_HINT_RENDER_SCALE_QUALITY, "1" ) )
+        {
+            printf( "Warning: Linear texture filtering not enabled!" );
+        }
+        
         //Create window
         gWindow = SDL_CreateWindow( "SDL Tutorial", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
         if( gWindow == NULL )
@@ -58,8 +189,26 @@ bool init()
         }
         else
         {
-            //Get window surface
-            gScreenSurface = SDL_GetWindowSurface( gWindow );
+            //Create renderer for window
+            gRenderer = SDL_CreateRenderer( gWindow, -1, SDL_RENDERER_ACCELERATED );
+            if( gRenderer == NULL )
+            {
+                printf( "Renderer could not be created! SDL Error: %s\n", SDL_GetError() );
+                success = false;
+            }
+            else
+            {
+                //Initialize renderer color
+                SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
+                
+                //Initialize PNG loading
+                int imgFlags = IMG_INIT_PNG;
+                if( !( IMG_Init( imgFlags ) & imgFlags ) )
+                {
+                    printf( "SDL_image could not initialize! SDL_mage Error: %s\n", IMG_GetError() );
+                    success = false;
+                }
+            }
         }
     }
     
@@ -71,12 +220,37 @@ bool loadMedia()
     //Loading success flag
     bool success = true;
     
-    //Load stretching surface
-    gStretchedSurface = loadSurface( "media/stretch.bmp" );
-    if( gStretchedSurface == NULL )
+    //Load sprite sheet texture
+    if( !gSpriteSheetTexture.loadFromFile( "media/dots.png" ) )
     {
-        printf( "Failed to load stretching image!\n" );
+        printf( "Failed to load sprite sheet texture!\n" );
         success = false;
+    }
+    else
+    {
+        //Set top left sprite
+        gSpriteClips[ 0 ].x =   0;
+        gSpriteClips[ 0 ].y =   0;
+        gSpriteClips[ 0 ].w = 100;
+        gSpriteClips[ 0 ].h = 100;
+        
+        //Set top right sprite
+        gSpriteClips[ 1 ].x = 100;
+        gSpriteClips[ 1 ].y =   0;
+        gSpriteClips[ 1 ].w = 100;
+        gSpriteClips[ 1 ].h = 100;
+        
+        //Set bottom left sprite
+        gSpriteClips[ 2 ].x =   0;
+        gSpriteClips[ 2 ].y = 100;
+        gSpriteClips[ 2 ].w = 100;
+        gSpriteClips[ 2 ].h = 100;
+        
+        //Set bottom right sprite
+        gSpriteClips[ 3 ].x = 100;
+        gSpriteClips[ 3 ].y = 100;
+        gSpriteClips[ 3 ].w = 100;
+        gSpriteClips[ 3 ].h = 100;
     }
     
     return success;
@@ -84,43 +258,18 @@ bool loadMedia()
 
 void close()
 {
-    //Free loaded image
-    SDL_FreeSurface( gStretchedSurface );
-    gStretchedSurface = NULL;
+    //Free loaded images
+    gSpriteSheetTexture.free();
     
     //Destroy window
+    SDL_DestroyRenderer( gRenderer );
     SDL_DestroyWindow( gWindow );
     gWindow = NULL;
+    gRenderer = NULL;
     
     //Quit SDL subsystems
+    IMG_Quit();
     SDL_Quit();
-}
-
-SDL_Surface* loadSurface( std::string path )
-{
-    //The final optimized image
-    SDL_Surface* optimizedSurface = NULL;
-    
-    //Load image at specified path
-    SDL_Surface* loadedSurface = SDL_LoadBMP( path.c_str() );
-    if( loadedSurface == NULL )
-    {
-        printf( "Unable to load image %s! SDL Error: %s\n", path.c_str(), SDL_GetError() );
-    }
-    else
-    {
-        //Convert surface to screen format
-        optimizedSurface = SDL_ConvertSurface( loadedSurface, gScreenSurface->format, NULL );
-        if( optimizedSurface == NULL )
-        {
-            printf( "Unable to optimize image %s! SDL Error: %s\n", path.c_str(), SDL_GetError() );
-        }
-        
-        //Get rid of old loaded surface
-        SDL_FreeSurface( loadedSurface );
-    }
-    
-    return optimizedSurface;
 }
 
 int main( int argc, char* args[] )
@@ -158,16 +307,24 @@ int main( int argc, char* args[] )
                     }
                 }
                 
-                //Apply the image stretched
-                SDL_Rect stretchRect;
-                stretchRect.x = 0;
-                stretchRect.y = 0;
-                stretchRect.w = SCREEN_WIDTH;
-                stretchRect.h = SCREEN_HEIGHT;
-                SDL_BlitScaled( gStretchedSurface, NULL, gScreenSurface, &stretchRect );
+                //Clear screen
+                SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
+                SDL_RenderClear( gRenderer );
                 
-                //Update the surface
-                SDL_UpdateWindowSurface( gWindow );
+                //Render top left sprite
+                gSpriteSheetTexture.render( 0, 0, &gSpriteClips[ 0 ] );
+                
+                //Render top right sprite
+                gSpriteSheetTexture.render( SCREEN_WIDTH - gSpriteClips[ 1 ].w, 0, &gSpriteClips[ 1 ] );
+                
+                //Render bottom left sprite
+                gSpriteSheetTexture.render( 0, SCREEN_HEIGHT - gSpriteClips[ 2 ].h, &gSpriteClips[ 2 ] );
+                
+                //Render bottom right sprite
+                gSpriteSheetTexture.render( SCREEN_WIDTH - gSpriteClips[ 3 ].w, SCREEN_HEIGHT - gSpriteClips[ 3 ].h, &gSpriteClips[ 3 ] );
+                
+                //Update screen
+                SDL_RenderPresent( gRenderer );
             }
         }
     }
