@@ -140,6 +140,11 @@ SDL_Window* gWindow = NULL;
 //The window renderer
 SDL_Renderer* gRenderer = NULL;
 
+//Walking animation
+const int WALKING_ANIMATION_FRAMES = 4;
+SDL_Rect gSpriteClips[ WALKING_ANIMATION_FRAMES ];
+LTexture gSpriteSheetTexture;
+
 //Scene textures
 LTexture gDotTexture;
 
@@ -419,11 +424,34 @@ bool loadMedia()
     //Loading success flag
     bool success = true;
     
-    //Load dot texture
-    if( !gDotTexture.loadFromFile( "media/dot.bmp" ) )
+    //Load sprite sheet texture
+    if( !gSpriteSheetTexture.loadFromFile( "media/dots.png" ) )
     {
-        printf( "Failed to load dot texture!\n" );
+        printf( "Failed to load walking animation texture!\n" );
         success = false;
+    }
+    else
+    {
+        //Set sprite clips
+        gSpriteClips[ 0 ].x =   0;
+        gSpriteClips[ 0 ].y =   0;
+        gSpriteClips[ 0 ].w = 100;
+        gSpriteClips[ 0 ].h = 100;
+        
+        gSpriteClips[ 1 ].x = 100;
+        gSpriteClips[ 1 ].y =   0;
+        gSpriteClips[ 1 ].w = 100;
+        gSpriteClips[ 1 ].h = 100;
+        
+        gSpriteClips[ 2 ].x =   0;
+        gSpriteClips[ 2 ].y = 100;
+        gSpriteClips[ 2 ].w = 100;
+        gSpriteClips[ 2 ].h = 100;
+        
+        gSpriteClips[ 3 ].x = 100;
+        gSpriteClips[ 3 ].y = 100;
+        gSpriteClips[ 3 ].w = 100;
+        gSpriteClips[ 3 ].h = 100;
     }
     
     return success;
@@ -467,6 +495,9 @@ int main( int argc, char* args[] )
             //Event handler
             SDL_Event e;
             
+            //Current animation frame
+            int frame = 0;
+            
             //The dot that will be moving around on the screen
             Dot dot;
             
@@ -496,8 +527,21 @@ int main( int argc, char* args[] )
                 //Render objects
                 dot.render();
                 
+                //Render current frame
+                SDL_Rect* currentClip = &gSpriteClips[ frame / 4 ];
+                gSpriteSheetTexture.render( ( SCREEN_WIDTH - currentClip->w ) / 2, ( SCREEN_HEIGHT - currentClip->h ) / 2, currentClip );
+                
                 //Update screen
                 SDL_RenderPresent( gRenderer );
+                
+                //Go to next frame
+                ++frame;
+                
+                //Cycle animation
+                if( frame / 4 >= WALKING_ANIMATION_FRAMES )
+                {
+                    frame = 0;
+                }
             }
         }
     }
